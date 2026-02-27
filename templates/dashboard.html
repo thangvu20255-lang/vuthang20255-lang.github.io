@@ -1,98 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Dashboard</title>
-<style>
-body{
-    margin:0;
-    font-family:Tahoma;
-    background:#0f172a;
-    color:white;
-}
-
-.header{
-    background:#1e293b;
-    padding:15px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-
-.header h2{
-    margin:0;
-}
-
-.container{
-    padding:30px;
-}
-
-.card{
-    background:#1f2937;
-    padding:20px;
-    border-radius:15px;
-    margin-bottom:15px;
-}
-
-button{
-    padding:8px 15px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    font-weight:bold;
-}
-
-.lock{ background:#ef4444; color:white; }
-.unlock{ background:#10b981; color:white; }
-.logout{ background:#3b82f6; color:white; }
-
-a{
-    text-decoration:none;
-    color:white;
-}
-</style>
+    <title>Sảnh chờ</title>
 </head>
-<body>
+<body style="background:#111;color:white;font-family:sans-serif">
 
-<div class="header">
-    <h2>Dashboard</h2>
-    <a href="/logout"><button class="logout">Logout</button></a>
-</div>
+    <h2>Xin chào: {{ username }}</h2>
+    <p>Role: {{ role }}</p>
 
-<div class="container">
+    <h1>🎮 SẢNH CHỜ</h1>
 
-<h3>Xin chào {{ username }}</h3>
-<p>Role: <b>{{ role }}</b></p>
+    <form action="/create-room" method="post">
+        <button>Tạo phòng</button>
+    </form>
 
-{% if role == "admin" %}
+    <hr>
 
-<h3>👑 ADMIN PANEL</h3>
+    {% for room in rooms %}
+        <div style="border:1px solid #444;padding:15px;margin:10px 0;">
+            <h3>Room {{ room.id }}</h3>
+            <p>Người chơi: {{ room.players|length }}/{{ room.max }}</p>
+            <p>Danh sách: {{ room.players }}</p>
 
-{% for u, data in users.items() %}
-    {% if u != "admin" %}
-        <div class="card">
-            <p>
-                <b>{{ u }}</b> ({{ data.role }})
-                -
-                {% if data.locked %}
-                    🔒 Locked
-                    <a href="/admin/unlock/{{ u }}">
-                        <button class="unlock">UNLOCK</button>
-                    </a>
-                {% else %}
-                    🟢 Active
-                    <a href="/admin/lock/{{ u }}">
-                        <button class="lock">LOCK</button>
-                    </a>
-                {% endif %}
-            </p>
+            <form action="/join-room/{{ room.id }}" method="post">
+                <button>Vào phòng</button>
+            </form>
         </div>
-    {% endif %}
-{% endfor %}
-
-{% endif %}
-
-</div>
+    {% endfor %}
 
 </body>
 </html>
