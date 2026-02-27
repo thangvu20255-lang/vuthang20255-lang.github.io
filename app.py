@@ -5,9 +5,9 @@ app.secret_key = "super_secret_key_123"
 
 # ====== DATABASE GIẢ LẬP ======
 users = {
-    "admin": {"password": "123456", "role": "admin"},
-    "mod": {"password": "123456", "role": "mod"},
-    "user": {"password": "123456", "role": "user"}
+    "admin": {"password": "123456", "role": "admin", "locked": False},
+    "mod": {"password": "123456", "role": "mod", "locked": False},
+    "user": {"password": "123456", "role": "user", "locked": False}
 }
 
 # ================= LOGIN UI =================
@@ -119,12 +119,18 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
 
-        if username in users and users[username]["password"] == password:
-            session["user"] = username
-            session["role"] = users[username]["role"]
-            return redirect("/dashboard")
-        else:
-            return render_login("Sai tài khoản hoặc mật khẩu")
+        if username in users:
+
+            # 🔒 Kiểm tra bị khóa
+            if users[username]["locked"]:
+                return render_login("Tài khoản đã bị khóa")
+
+            if users[username]["password"] == password:
+                session["user"] = username
+                session["role"] = users[username]["role"]
+                return redirect("/dashboard")
+
+        return render_login("Sai tài khoản hoặc mật khẩu")
 
     return render_login()
 
@@ -141,7 +147,8 @@ def register():
 
         users[username] = {
             "password": password,
-            "role": "user"  # mặc định user
+            "role": "user",
+            "locked": False
         }
 
         return redirect("/")
@@ -158,11 +165,58 @@ def dashboard():
     role = session.get("role")
     username = session.get("user")
 
+    # 👑 ADMIN PANEL
+    if role == "admin":
+        user_list = ""
+
+        for u in users:
+            if u != "admin":
+                status = "🔒 Locked" if users[u]["locked"] else "🟢 Active"
+                action = "unlock" if users[u]["locked"] else "lock"
+
+                user_list += f"""
+                <p>
+                {u} ({users[u]['role']}) - {status}
+                <a href='/admin/{action}/{u}'>[{action.upper()}]</a>
+                </p>
+                """
+
+        return f"""
+        <h2>ADMIN PANEL</h2>
+        {user_list}
+        <br>
+        <a href='/logout'>Logout</a>
+        """
+
+    # USER / MOD VIEW
     return f"""
     <h1>Xin chào {username}</h1>
     <h2>Role: {role}</h2>
     <a href='/logout'>Logout</a>
     """
+
+
+# ================= LOCK / UNLOCK =================
+@app.route("/admin/lock/<username>")
+def lock_user(username):
+    if session.get("role") != "admin":
+        return redirect("/")
+
+    if username in users:
+        users[username]["locked"] = True
+
+    return redirect("/dashboard")
+
+
+@app.route("/admin/unlock/<username>")
+def unlock_user(username):
+    if session.get("role") != "admin":
+        return redirect("/")
+
+    if username in users:
+        users[username]["locked"] = False
+
+    return redirect("/dashboard")
 
 
 # ================= LOGOUT =================
