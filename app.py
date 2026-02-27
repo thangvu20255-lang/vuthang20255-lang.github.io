@@ -10,17 +10,14 @@ users = {
     "user": {"password": "123456", "role": "user"}
 }
 
-# ====== LOGIN UI (GIỮ NGUYÊN GIAO DIỆN CỦA BẠN) ======
+# ================= LOGIN UI =================
 def render_login(error=""):
-
     html = """
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Đăng nhập</title>
-
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Tahoma;}
 body{display:flex;justify-content:center;align-items:center;min-height:100vh;background:#0f0f0f;overflow:hidden;}
@@ -43,13 +40,11 @@ body{display:flex;justify-content:center;align-items:center;min-height:100vh;bac
 .link a{color:#7adaa5;text-decoration:none;font-size:14px;}
 </style>
 </head>
-
 <body>
 <div class="container">
 <i style="--clr:#4ca0ff;"></i>
 <i style="--clr:#7adaa5;"></i>
 <i style="--clr:#b153d7;"></i>
-
 <div class="login">
 <h2>Đăng nhập</h2>
 <div class="error">{{ error }}</div>
@@ -69,7 +64,7 @@ body{display:flex;justify-content:center;align-items:center;min-height:100vh;bac
 </form>
 
 <div class="link">
-<a href="#">Hệ thống phân quyền 3 cấp</a>
+<a href="/register">Chưa có tài khoản? Đăng ký</a>
 </div>
 </div>
 </div>
@@ -78,7 +73,46 @@ body{display:flex;justify-content:center;align-items:center;min-height:100vh;bac
 """
     return render_template_string(html, error=error)
 
-# ====== LOGIN ROUTE ======
+
+# ================= REGISTER UI =================
+def render_register(error=""):
+    html = """
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Đăng ký</title>
+<style>
+body{display:flex;justify-content:center;align-items:center;height:100vh;background:#111;color:white;font-family:Tahoma;}
+.box{background:#1f2937;padding:30px;border-radius:15px;width:320px;}
+input{width:100%;padding:10px;margin:10px 0;border:none;border-radius:8px;}
+button{width:100%;padding:10px;background:#10b981;border:none;border-radius:8px;color:white;font-weight:bold;}
+.error{color:#ef4444;text-align:center;}
+a{color:#7adaa5;text-decoration:none;}
+</style>
+</head>
+<body>
+<div class="box">
+<h2 style="text-align:center;">Đăng ký</h2>
+<div class="error">{{ error }}</div>
+
+<form method="POST">
+<input type="text" name="username" placeholder="Username" required>
+<input type="password" name="password" placeholder="Password" required>
+<button type="submit">Tạo tài khoản</button>
+</form>
+
+<p style="text-align:center;margin-top:10px;">
+<a href="/">Quay lại đăng nhập</a>
+</p>
+</div>
+</body>
+</html>
+"""
+    return render_template_string(html, error=error)
+
+
+# ================= LOGIN =================
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -94,7 +128,28 @@ def login():
 
     return render_login()
 
-# ====== DASHBOARD THEO PHÂN QUYỀN ======
+
+# ================= REGISTER =================
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+
+        if username in users:
+            return render_register("Tài khoản đã tồn tại")
+
+        users[username] = {
+            "password": password,
+            "role": "user"  # mặc định user
+        }
+
+        return redirect("/")
+
+    return render_register()
+
+
+# ================= DASHBOARD =================
 @app.route("/dashboard")
 def dashboard():
     if "user" not in session:
@@ -103,61 +158,19 @@ def dashboard():
     role = session.get("role")
     username = session.get("user")
 
-    html = """
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Dashboard</title>
-<style>
-body{margin:0;font-family:Tahoma;background:#f4f6f9;}
-.topbar{background:#111827;color:white;padding:15px;display:flex;justify-content:space-between;}
-.content{padding:30px;}
-.card{background:white;padding:20px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,0.1);margin-bottom:20px;}
-.admin{color:#ef4444;font-weight:bold;}
-.mod{color:#f59e0b;font-weight:bold;}
-.user{color:#10b981;font-weight:bold;}
-a{color:white;text-decoration:none;background:#ef4444;padding:8px 15px;border-radius:8px;}
-</style>
-</head>
-<body>
+    return f"""
+    <h1>Xin chào {username}</h1>
+    <h2>Role: {role}</h2>
+    <a href='/logout'>Logout</a>
+    """
 
-<div class="topbar">
-<div>Xin chào {{ username }} ({{ role }})</div>
-<div><a href="/logout">Logout</a></div>
-</div>
 
-<div class="content">
-
-{% if role == "admin" %}
-<div class="card admin">
-<h2>ADMIN PANEL</h2>
-<p>Toàn quyền quản lý hệ thống.</p>
-<p>Có thể quản lý Admin / Mod / User</p>
-</div>
-{% elif role == "mod" %}
-<div class="card mod">
-<h2>MOD PANEL</h2>
-<p>Quản lý user nhưng không được quản lý admin.</p>
-</div>
-{% else %}
-<div class="card user">
-<h2>USER PANEL</h2>
-<p>Chỉ xem thông tin cá nhân.</p>
-</div>
-{% endif %}
-
-</div>
-</body>
-</html>
-"""
-    return render_template_string(html, username=username, role=role)
-
-# ====== LOGOUT ======
+# ================= LOGOUT =================
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/")
+
 
 if __name__ == "__main__":
     app.run(debug=True)
