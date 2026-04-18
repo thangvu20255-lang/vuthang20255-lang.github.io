@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>War Login</title>
+<link rel="stylesheet" href="/static/style.css">
+
+<!-- icon -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="overlay"></div>
+
+<div class="login-box">
+
+  <!-- tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="showLogin()">Login</button>
+    <button class="tab" onclick="showRegister()">Register</button>
+  </div>
+
+  <!-- LOGIN -->
+  <form id="loginForm" action="/login" method="post">
+    <div class="input-box">
+      <i class="fa fa-user"></i>
+      <input name="username" placeholder="Username">
+    </div>
+
+    <div class="input-box">
+      <i class="fa fa-lock"></i>
+      <input name="password" type="password" placeholder="Password">
+      <i class="fa fa-eye toggle"></i>
+    </div>
+
+    <div class="options">
+      <label><input type="checkbox"> Remember Me</label>
+      <a href="#">Forgot Password?</a>
+    </div>
+
+    <button class="btn">Login</button>
+
+    <p class="switch">Don't have account? <span onclick="showRegister()">Sign Up</span></p>
+  </form>
+
+  <!-- REGISTER -->
+  <form id="registerForm" action="/register" method="post" class="hidden">
+    <div class="input-box">
+      <i class="fa fa-user"></i>
+      <input name="username" placeholder="Username">
+    </div>
+
+    <div class="input-box">
+      <i class="fa fa-lock"></i>
+      <input name="password" type="password" placeholder="Password">
+    </div>
+
+    <button class="btn">Register</button>
+
+    <p class="switch">Already have account? <span onclick="showLogin()">Login</span></p>
+  </form>
+
+</div>
+
+<script src="/static/script.js"></script>
+</body>
+        </html>
